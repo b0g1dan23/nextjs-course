@@ -1,19 +1,14 @@
 import React, { Fragment } from "react";
-import { getFilteredEvents } from "../../dummy-data";
-import { useRouter } from "next/router";
+import { getFilteredEvents } from "../../helpers/api-util";
 import ResultsTitle from "../../components/events/ResultsTitle";
 import EventList from "../../components/events/event-list";
 import Button from "../../components/ui/Button";
 import ErrorAlert from "../../components/ui/ErrorAlert";
 
-function FilteredEvents() {
-  const router = useRouter();
+export async function getServerSideProps(context) {
+  const { params } = context;
 
-  const filterData = router.query.slug;
-
-  if (!filterData) {
-    return <p className="center">Loading...</p>;
-  }
+  const filterData = params.slug;
 
   const filteredYear = +filterData[0];
   const filteredMonth = +filterData[1];
@@ -26,6 +21,31 @@ function FilteredEvents() {
     filteredMonth < 1 ||
     filteredMonth > 12
   ) {
+    return {
+      props: {
+        hasError: true,
+      },
+    };
+  }
+
+  const filteredEvents = await getFilteredEvents({
+    year: filteredYear,
+    month: filteredMonth,
+  });
+
+  return {
+    props: {
+      filteredEvents,
+      date: {
+        year: filteredYear,
+        month: filteredMonth,
+      },
+    },
+  };
+}
+
+function FilteredEvents({ hasError, filteredEvents, date }) {
+  if (hasError) {
     return (
       <Fragment>
         <ErrorAlert>
@@ -37,11 +57,6 @@ function FilteredEvents() {
       </Fragment>
     );
   }
-
-  const filteredEvents = getFilteredEvents({
-    year: filteredYear,
-    month: filteredMonth,
-  });
 
   if (!filteredEvents || filteredEvents.length === 0) {
     return (
@@ -56,11 +71,11 @@ function FilteredEvents() {
     );
   }
 
-  const date = new Date(filteredYear, filteredMonth - 1);
+  const newDate = new Date(date.year, date.month - 1);
 
   return (
     <Fragment>
-      <ResultsTitle date={date} />
+      <ResultsTitle date={newDate} />
       <EventList items={filteredEvents}></EventList>
     </Fragment>
   );

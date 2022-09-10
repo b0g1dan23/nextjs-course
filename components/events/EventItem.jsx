@@ -44,12 +44,4 @@ function EventItem({ title, date, image, location, id }) {
   );
 }
 
-EventItem.propTypes = {
-  title: PropTypes.string.isRequired,
-  date: PropTypes.string.isRequired,
-  image: PropTypes.string.isRequired,
-  location: PropTypes.string.isRequired,
-  id: PropTypes.number.isRequired,
-};
-
 export default EventItem;
